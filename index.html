@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perjalanan Dinas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1B2A4A; --navy-deep:#101B33; --cream:#F6F4EE; --panel:#FFFFFF;
+    --gold:#B8863B; --gold-soft:#E9D9BD; --line:#E1DDD3; --ink:#26241F; --muted:#6B6858;
+    --ok:#3E6B4F; --ok-bg:#E7F0EA; --warn:#9A5B22; --warn-bg:#F5E7D6; --bad:#9C3B34; --bad-bg:#F6E4E2;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Source Serif 4',serif;margin:0;color:var(--navy-deep);}
+  .hidden{display:none !important;}
+  .loginwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .logincard{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:40px;max-width:380px;width:100%;}
+  .logincard .mark{width:44px;height:44px;border:1.5px solid var(--gold);border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',serif;font-weight:600;color:var(--gold);margin-bottom:18px;}
+  .logincard h1{font-size:1.5rem;margin-bottom:4px;}
+  .logincard .sub{color:var(--muted);font-size:.88rem;margin-bottom:6px;}
+  .switchmode{margin-top:16px;font-size:.83rem;color:var(--muted);}
+  .switchmode a{color:var(--navy);cursor:pointer;font-weight:600;text-decoration:none;}
+  label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:5px;margin-top:14px;}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:3px;font-family:'Inter',sans-serif;font-size:.92rem;background:#fff;color:var(--ink);}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);}
+  textarea{resize:vertical;min-height:70px;}
+  .btn{display:inline-block;background:var(--navy);color:#fff;border:none;padding:11px 20px;border-radius:3px;font-size:.9rem;font-weight:600;cursor:pointer;margin-top:20px;}
+  .btn:hover{background:var(--navy-deep);}
+  .btn.gold{background:var(--gold);} .btn.gold:hover{background:#9C7231;}
+  .btn.ghost{background:transparent;color:var(--navy);border:1px solid var(--navy);} .btn.ghost:hover{background:var(--navy);color:#fff;}
+  .btn.small{padding:6px 12px;font-size:.78rem;margin-top:0;}
+  .btn.danger{background:var(--bad);}
+  .msg{font-size:.85rem;margin-top:12px;padding:10px 12px;border-radius:3px;}
+  .msg.err{background:var(--bad-bg);color:var(--bad);} .msg.ok{background:var(--ok-bg);color:var(--ok);}
+  .fieldhead{font-family:'Source Serif 4',serif;font-size:.95rem;color:var(--navy-deep);margin-top:22px;padding-top:14px;border-top:1px solid var(--line);}
+  .fieldhead:first-child{margin-top:0;padding-top:0;border-top:none;}
+
+  .shell{display:flex;min-height:100vh;}
+  .sidebar{width:230px;background:var(--navy-deep);color:#fff;flex-shrink:0;padding:22px 0;}
+  .sidebar .brand{display:flex;align-items:center;gap:10px;padding:0 20px 22px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:10px;}
+  .sidebar .brand .mark{width:30px;height:30px;border:1.5px solid var(--gold-soft);border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',serif;font-weight:600;color:var(--gold-soft);font-size:.85rem;}
+  .sidebar .brand span{font-family:'Source Serif 4',serif;font-size:1.05rem;}
+  .navitem{padding:12px 20px;font-size:.87rem;color:#C9C5B5;cursor:pointer;border-left:3px solid transparent;}
+  .navitem:hover{color:#fff;background:rgba(255,255,255,.05);}
+  .navitem.active{color:#fff;border-left-color:var(--gold);background:rgba(255,255,255,.06);font-weight:600;}
+  .sidebar .logout{margin:20px 20px 0;padding:8px 0;font-size:.8rem;color:#C9C5B5;cursor:pointer;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;}
+  .sidebar .logout:hover{color:#fff;}
+  .main{flex:1;padding:32px 36px 80px;max-width:1000px;}
+  .pagehead{margin-bottom:24px;}
+  .pagehead h2{font-size:1.4rem;}
+  .pagehead .sub{color:var(--muted);font-size:.88rem;margin-top:3px;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:26px;margin-bottom:22px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 16px;}
+  @media(max-width:760px){.row2,.row3{grid-template-columns:1fr;} .shell{flex-direction:column;} .sidebar{width:100%;}}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+  @media(max-width:760px){.stats{grid-template-columns:1fr;}}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:20px 22px;}
+  .stat .num{font-family:'Source Serif 4',serif;font-size:2rem;color:var(--navy-deep);}
+  .stat .lbl{color:var(--muted);font-size:.82rem;margin-top:4px;}
+
+  table.list{width:100%;border-collapse:collapse;font-size:.87rem;}
+  table.list th{text-align:left;padding:10px 10px;border-bottom:1.5px solid var(--line);color:var(--muted);font-weight:600;font-size:.78rem;}
+  table.list td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.list tr:last-child td{border-bottom:none;}
+  .rowactions{display:flex;gap:6px;flex-wrap:wrap;}
+  .empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:.88rem;}
+  .badge{font-size:.74rem;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+  .badge.berlangsung{background:var(--warn-bg);color:var(--warn);}
+  .badge.selesai{background:var(--ok-bg);color:var(--ok);}
+
+  .overlay{position:fixed;inset:0;background:rgba(16,27,51,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:50;}
+  .modal{background:#fff;border-radius:4px;max-width:640px;width:100%;padding:28px;}
+  .modal h3{font-size:1.15rem;margin-bottom:16px;}
+  .modalclose{float:right;cursor:pointer;color:var(--muted);font-size:.85rem;}
+
+  #printArea{display:none;}
+  @page{ size:A4; margin:12mm 15mm; }
+  @media print{
+    html,body{width:210mm;height:auto;}
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:0;margin:0;}
+    .pagebreak{page-break-before:always;break-before:page;}
+    /* Cegah baris tabel, blok tanda tangan, dan paragraf terpotong di batas halaman */
+    .surat table{page-break-inside:auto;}
+    .surat tr{page-break-inside:avoid;break-inside:avoid;}
+    .surat .ttd-block{page-break-inside:avoid;break-inside:avoid;}
+    .surat p{orphans:3;widows:3;}
+    .surat, .surat *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+  .surat{font-family:'Inter',sans-serif;font-size:.86rem;line-height:1.45;color:#000;}
+  .surat table.data{width:100%;border-collapse:collapse;margin:12px 0;table-layout:fixed;}
+  .surat table.data td{padding:3px 4px;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word;}
+  .surat table.data td.k{width:52%;}
+  .surat table.data.bordered{border:1px solid #000;}
+  .surat table.data.bordered td{border:1px solid #000;padding:5px 7px;}
+  .surat table.data.bordered td.k{width:48%;}
+  .surat .judul{text-align:center;font-weight:700;font-size:1.02rem;}
+  .surat .judul.underline{text-decoration:underline;}
+  .surat .nomor{text-align:center;font-weight:700;font-size:.88rem;margin-bottom:14px;}
+  .surat p{margin:10px 0;}
+  .surat .lanjutan-tbl{width:100%;border-collapse:collapse;font-size:.82rem;table-layout:fixed;}
+  .surat .lanjutan-tbl td{border:1px solid #000;padding:7px 8px;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word;}
+  .surat .ttd-space{height:80px;}
+  .checklist{border:1px solid var(--line);border-radius:3px;padding:6px 12px;max-height:170px;overflow-y:auto;background:#fff;}
+  .checklist .citem{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:.88rem;cursor:pointer;}
+  .checklist .citem input{width:auto;margin:0;flex-shrink:0;}
+  .checklist .empty2{color:var(--muted);font-size:.85rem;padding:6px 0;}
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="loginwrap">
+  <div class="logincard">
+    <div class="mark">PD</div>
+    <h1>Perjalanan Dinas</h1>
+    <p class="sub" id="loginModeLabel">Masuk sebagai admin/operator</p>
+    <div id="loginFields">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="nama@sekolah.sch.id">
+      <label>Kata sandi</label>
+      <input type="password" id="loginPassword" placeholder="••••••••">
+    </div>
+    <button class="btn gold" id="loginBtn" style="width:100%">Masuk</button>
+    <button class="btn gold hidden" id="registerBtn" style="width:100%">Daftar akun operator</button>
+    <div id="loginMsg"></div>
+    <div class="switchmode">
+      <span id="toRegisterWrap">Belum punya akun? <a id="toRegister">Daftar akun operator</a></span>
+      <span id="toLoginWrap" class="hidden">Sudah punya akun? <a id="toLogin">Masuk</a></span>
+    </div>
+  </div>
+</div>
+
+<div id="appScreen" class="hidden">
+  <div class="shell">
+    <div class="sidebar">
+      <div class="brand"><div class="mark">PD</div><span>Perjalanan Dinas</span></div>
+      <div class="navitem active" data-page="dashboard">Dashboard</div>
+      <div class="navitem" data-page="sekolah">Input Data Sekolah</div>
+      <div class="navitem" data-page="kepsek">Input Data Kepala Sekolah</div>
+      <div class="navitem" data-page="pegawai">Data Guru & Pegawai</div>
+      <div class="navitem" data-page="dinas">Perjalanan Dinas & Cetak</div>
+      <div class="logout" id="logoutBtn">Keluar</div>
+    </div>
+    <div class="main">
+
+      <div class="page" id="page-dashboard">
+        <div class="pagehead"><h2>Dashboard</h2><p class="sub">Ringkasan data Perjalanan Dinas.</p></div>
+        <div class="stats">
+          <div class="stat"><div class="num" id="statPegawai">0</div><div class="lbl">Guru & Pegawai Terdaftar</div></div>
+          <div class="stat"><div class="num" id="statBulanIni">0</div><div class="lbl">Perjalanan Dinas Bulan Ini</div></div>
+          <div class="stat"><div class="num" id="statBerlangsung">0</div><div class="lbl">Sedang Berlangsung</div></div>
+        </div>
+        <div class="panel">
+          <h2 style="font-size:1.05rem;margin-bottom:14px;">Perjalanan Dinas Terbaru</h2>
+          <div id="dashRecent"></div>
+        </div>
+      </div>
+
+      <div class="page hidden" id="page-sekolah">
+        <div class="pagehead"><h2>Input Data Sekolah</h2><p class="sub">Digunakan sebagai kop surat pada dokumen yang dicetak.</p></div>
+        <div class="panel">
+          <form id="formSekolah">
+            <label>Baris Instansi Induk (opsional, satu baris per instansi — misal Yayasan / Keuskupan / Paroki)</label>
+            <textarea id="skInstansiInduk" placeholder="YAYASAN SUKMA MANGGARAI TIMUR&#10;KEUSKUPAN RUTENG&#10;PAROKI ST. ROBERTUS BELARMINUS TILIR"></textarea>
+            <label>Nama Sekolah</label>
+            <input type="text" id="skNama" required placeholder="Contoh: SDK JONG">
+            <label>Alamat</label>
+            <input type="text" id="skAlamat" placeholder="Contoh: Jong, Desa Benteng Raja">
+            <div class="row2">
+              <div><label>Kecamatan</label><input type="text" id="skKecamatan" placeholder="Contoh: Borong"></div>
+              <div><label>Kabupaten/Kota</label><input type="text" id="skKabupaten"></div>
+            </div>
+            <div class="row2">
+              <div><label>NPSN</label><input type="text" id="skNpsn"></div>
+              <div><label>Telepon / Email</label><input type="text" id="skKontak"></div>
+            </div>
+            <div class="row2">
+              <div><label>Kode Klasifikasi Surat</label><input type="text" id="skKodeKlasifikasi" placeholder="Contoh: 420"></div>
+              <div><label>Kode Sekolah untuk Nomor Surat</label><input type="text" id="skKodeSekolah" placeholder="Contoh: SDK-JONG"></div>
+            </div>
+            <p class="sub" style="margin:6px 0 0;">Nomor surat akan dibuat otomatis dengan format Kode Klasifikasi / Urutan / Kode Sekolah / Bulan Romawi / Tahun, urutan direset tiap awal bulan.</p>
+            <div class="row2">
+              <div>
+                <label>Logo Kiri (opsional)</label>
+                <input type="file" id="skLogoKiriFile" accept="image/*">
+                <div style="margin-top:8px;display:flex;align-items:center;gap:10px;">
+                  <img id="skLogoKiriPreview" src="" style="max-height:58px;max-width:80px;object-fit:contain;border:1px solid #ddd;border-radius:4px;display:none;">
+                  <button type="button" class="btn small ghost hidden" id="skLogoKiriHapus">Hapus Logo</button>
+                </div>
+                <input type="hidden" id="skLogoKiri">
+              </div>
+              <div>
+                <label>Logo Kanan (opsional)</label>
+                <input type="file" id="skLogoKananFile" accept="image/*">
+                <div style="margin-top:8px;display:flex;align-items:center;gap:10px;">
+                  <img id="skLogoKananPreview" src="" style="max-height:58px;max-width:80px;object-fit:contain;border:1px solid #ddd;border-radius:4px;display:none;">
+                  <button type="button" class="btn small ghost hidden" id="skLogoKananHapus">Hapus Logo</button>
+                </div>
+                <input type="hidden" id="skLogoKanan">
+              </div>
+            </div>
+            <p class="sub" style="margin:2px 0 0;">Logo otomatis dikecilkan agar ringan disimpan. Gunakan gambar persegi untuk hasil terbaik.</p>
+            <button type="submit" class="btn gold">Simpan Data Sekolah</button>
+            <div id="msgSekolah"></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="page hidden" id="page-kepsek">
+        <div class="pagehead"><h2>Input Data Kepala Sekolah</h2><p class="sub">Digunakan sebagai penandatangan pada surat tugas dan SPPD.</p></div>
+        <div class="panel">
+          <form id="formKepsek">
+            <div class="row2">
+              <div><label>Nama Lengkap</label><input type="text" id="ksNama" required></div>
+              <div><label>NIP</label><input type="text" id="ksNip"></div>
+            </div>
+            <div class="row2">
+              <div><label>Pangkat / Golongan</label><input type="text" id="ksPangkat" placeholder="Contoh: Pembina, IV/a"></div>
+              <div><label>Nomor SK Pengangkatan</label><input type="text" id="ksSk"></div>
+            </div>
+            <button type="submit" class="btn gold">Simpan Data Kepala Sekolah</button>
+            <div id="msgKepsek"></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="page hidden" id="page-pegawai">
+        <div class="pagehead"><h2>Data Guru dan Pegawai</h2><p class="sub">Daftar induk guru/pegawai yang dapat dipilih saat membuat Perjalanan Dinas.</p></div>
+        <div class="panel">
+          <form id="formPegawai">
+            <div class="row2">
+              <div><label>Nama Lengkap</label><input type="text" id="pgNama" required></div>
+              <div><label>NIP / NUPTK</label><input type="text" id="pgNip"></div>
+            </div>
+            <div class="row2">
+              <div><label>Jabatan</label><input type="text" id="pgJabatan" placeholder="Contoh: Guru Kelas IV"></div>
+              <div><label>Pangkat / Golongan</label><input type="text" id="pgPangkat"></div>
+            </div>
+            <label>Gaji Pokok (opsional — otomatis mengisi kolom Gaji Pokok saat pegawai ini dipilih di form Perjalanan Dinas, termasuk saat menjadi pengikut)</label>
+            <input type="text" id="pgGajiPokok" placeholder="Contoh: 4.530.100">
+            <input type="hidden" id="pgEditId">
+            <button type="submit" class="btn gold" id="btnSimpanPegawai">Tambah Pegawai</button>
+            <button type="button" class="btn ghost hidden" id="btnBatalEditPegawai" style="margin-left:8px;">Batal</button>
+            <div id="msgPegawai"></div>
+          </form>
+        </div>
+        <div class="panel">
+          <h2 style="font-size:1.05rem;margin-bottom:14px;">Daftar Guru & Pegawai</h2>
+          <div id="listPegawai"></div>
+        </div>
+      </div>
+
+      <div class="page hidden" id="page-dinas">
+        <div class="pagehead"><h2>Perjalanan Dinas</h2><p class="sub">Kelola data perjalanan dinas dan cetak Surat Tugas, SPPD, serta Laporan Perjalanan Dinas.</p></div>
+        <button class="btn gold" id="btnBukaFormDinas">+ Tambah Perjalanan Dinas</button>
+        <div class="panel" style="margin-top:20px;">
+          <div id="listDinas"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="modalDinas">
+  <div class="modal">
+    <span class="modalclose" id="closeModalDinas">Tutup ✕</span>
+    <h3 id="modalDinasTitle">Tambah Perjalanan Dinas</h3>
+    <form id="formDinas">
+      <div class="fieldhead">Data Umum</div>
+      <p class="sub" style="margin:2px 0 12px;">Digunakan pada Surat Tugas, SPPD, dan Laporan Perjalanan Dinas.</p>
+      <label>Pilih Guru/Pegawai</label>
+      <select id="dnPegawai" required></select>
+      <p class="sub" style="margin:4px 0 0;">Nama, NIP, jabatan, pangkat/golongan, dan gaji pokok diambil otomatis dari Data Guru & Pegawai.</p>
+      <div class="row2">
+        <div><label>Nomor Surat (otomatis, bisa diubah)</label><input type="text" id="dnNomor" placeholder="Contoh: 420/64/SDK-Jong/V/2025"></div>
+        <div><label>Alat Transportasi</label>
+          <select id="dnTransport">
+            <option>Kendaraan Dinas</option><option>Kendaraan Pribadi</option>
+            <option>Taksi</option><option>Bus</option><option>Kereta Api</option><option>Pesawat</option><option>Lainnya</option>
+          </select>
+        </div>
+      </div>
+      <label>Dasar Penugasan</label>
+      <input type="text" id="dnDasar" placeholder="Contoh: Surat Bupati Manggarai Timur Nomor ...">
+      <label>Tujuan / Maksud Perjalanan (uraian tugas)</label>
+      <input type="text" id="dnKeperluanCari" placeholder="🔍 Cari kegiatan..." style="margin-bottom:6px;">
+      <div id="dnKeperluanChecklist" class="checklist" style="margin-bottom:8px;"></div>
+      <div class="row2" style="margin-bottom:8px;align-items:end;">
+        <div><label>Tambah Kegiatan Lain</label><input type="text" id="dnKeperluanLain" placeholder="Ketik kegiatan lalu klik Tambah"></div>
+        <div><button type="button" class="btn small ghost" id="btnTambahKeperluanLain" style="margin-top:0;">+ Tambah ke daftar di bawah</button></div>
+      </div>
+      <textarea id="dnKeperluan" required placeholder="Contoh: Pencairan dana BOSP Tahap 2"></textarea>
+      <p class="sub" style="margin:4px 0 0;">Centang kegiatan di atas untuk mengisi otomatis, atau tulis/ubah langsung di kotak teks ini.</p>
+      <div class="row2">
+        <div><label>Tempat Tujuan</label><input type="text" id="dnTujuan" required placeholder="Contoh: CV. Berlian Mitra Sarana"></div>
+        <div><label>Tempat Berangkat</label><input type="text" id="dnTempatBerangkat" placeholder="Diisi otomatis dari nama sekolah"></div>
+      </div>
+      <div class="row2">
+        <div><label>Tanggal Berangkat</label><input type="date" id="dnBerangkat" required></div>
+        <div><label>Tanggal Kembali</label><input type="date" id="dnKembali" required></div>
+      </div>
+
+      <div class="fieldhead">Data untuk SPPD</div>
+      <p class="sub" style="margin:2px 0 12px;">Digunakan khusus pada Surat Perjalanan Dinas (SPPD).</p>
+      <div class="row2">
+        <div><label>Gaji Pokok</label><input type="text" id="dnGajiPokok" placeholder="Terisi otomatis dari Data Guru & Pegawai, bisa diubah"></div>
+        <div><label>Tingkat Perjalanan Dinas</label>
+          <select id="dnTingkat"><option>Dalam Daerah</option><option>Luar Daerah</option></select>
+        </div>
+      </div>
+      <div class="row2">
+        <div><label>Nama Pengikut (opsional, bisa pilih lebih dari satu)</label>
+          <div id="dnPengikutList" class="checklist"></div>
+          <p class="sub" style="margin:4px 0 0;">Centang satu atau lebih pegawai yang ikut. Pangkat/golongan, jabatan, dan gaji pokok pengikut diambil otomatis dari Data Guru & Pegawai. Kosongkan jika tidak ada pengikut.</p>
+        </div>
+        <div><label>Mata Anggaran</label><input type="text" id="dnMataAnggaran" placeholder="Contoh: BOS SDK Jong Tahun 2025"></div>
+      </div>
+      <label>Keterangan Lain-lain</label>
+      <input type="text" id="dnKeteranganLain">
+      <div class="row2">
+        <div><label>Tempat Penetapan Surat</label><input type="text" id="dnTempatSurat" placeholder="Diisi otomatis dari nama sekolah"></div>
+        <div><label>Tanggal Surat Dikeluarkan</label><input type="date" id="dnTanggalSurat">
+          <p class="sub" style="margin:4px 0 0;">Maksimal sama dengan tanggal berangkat. Otomatis digeser mundur bila jatuh hari Minggu/libur nasional.</p>
+        </div>
+      </div>
+
+      <input type="hidden" id="dnEditId">
+      <button type="submit" class="btn gold">Simpan</button>
+      <div id="msgDinas"></div>
+    </form>
+  </div>
+</div>
+
+<div class="overlay hidden" id="modalLaporan">
+  <div class="modal">
+    <span class="modalclose" id="closeModalLaporan">Tutup ✕</span>
+    <h3>Laporan Perjalanan Dinas</h3>
+    <form id="formLaporan">
+      <div class="row2">
+        <div><label>Kepada</label><input type="text" id="lpKepada" placeholder="Contoh: Kepala Dinas PPO Kab. ..."></div>
+        <div><label>Tembusan</label><input type="text" id="lpTembusan" placeholder="Contoh: Kepala SDK Jong"></div>
+      </div>
+      <label>Tanggal Laporan</label>
+      <input type="date" id="lpTanggal">
+      <label>Kegiatan yang Dilaksanakan (satu kegiatan per baris)</label>
+      <textarea id="lpKegiatan" placeholder="Lapor diri&#10;Menyerahkan surat Tugas&#10;..." style="min-height:90px;"></textarea>
+      <label>Kesimpulan dan Saran</label>
+      <textarea id="lpKesimpulan" required placeholder="Contoh: Secara garis besar pelaksanaan tugas berjalan dengan aman dan lancar"></textarea>
+      <input type="hidden" id="lpEditId">
+      <button type="submit" class="btn gold">Simpan Laporan</button>
+      <div id="msgLaporan"></div>
+    </form>
+  </div>
+</div>
+
+<div id="printArea"><div class="surat" id="suratIsi"></div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, setDoc, getDoc, collection, addDoc, query,
+  onSnapshot, orderBy, updateDoc, deleteDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCV8Y_k8QGXmJOQ2O0nHytjrvLSUL5sGOI",
+  authDomain: "absensi-cc9a7.firebaseapp.com",
+  databaseURL: "https://absensi-cc9a7-default-rtdb.firebaseio.com",
+  projectId: "absensi-cc9a7",
+  storageBucket: "absensi-cc9a7.firebasestorage.app",
+  messagingSenderId: "1060539146857",
+  appId: "1:1060539146857:web:c844bcb85599bbf66a78f8",
+  measurementId: "G-7DXKL5BR93"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const loginScreen = document.getElementById('loginScreen');
+const appScreen = document.getElementById('appScreen');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const loginBtn = document.getElementById('loginBtn');
+const registerBtn = document.getElementById('registerBtn');
+const loginMsg = document.getElementById('loginMsg');
+const toRegister = document.getElementById('toRegister');
+const toLogin = document.getElementById('toLogin');
+const toRegisterWrap = document.getElementById('toRegisterWrap');
+const toLoginWrap = document.getElementById('toLoginWrap');
+let isRegisterMode = false;
+toRegister.onclick = () => { isRegisterMode = true; toggleMode(); };
+toLogin.onclick = () => { isRegisterMode = false; toggleMode(); };
+function toggleMode(){
+  loginBtn.classList.toggle('hidden', isRegisterMode);
+  registerBtn.classList.toggle('hidden', !isRegisterMode);
+  toRegisterWrap.classList.toggle('hidden', isRegisterMode);
+  toLoginWrap.classList.toggle('hidden', !isRegisterMode);
+  loginMsg.innerHTML = '';
+}
+function showMsg(el, text, type){ el.innerHTML = `<div class="msg ${type}">${text}</div>`; }
+function pesanError(code){
+  const map = {
+    'auth/invalid-email':'Format email tidak valid.', 'auth/user-not-found':'Akun tidak ditemukan.',
+    'auth/wrong-password':'Kata sandi salah.', 'auth/invalid-credential':'Email atau kata sandi salah.',
+    'auth/email-already-in-use':'Email sudah terdaftar.', 'auth/weak-password':'Kata sandi minimal 6 karakter.'
+  };
+  return map[code] || 'Terjadi kesalahan. Coba lagi.';
+}
+loginBtn.onclick = async () => {
+  loginMsg.innerHTML = '';
+  try{ await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value); }
+  catch(e){ showMsg(loginMsg, pesanError(e.code), 'err'); }
+};
+registerBtn.onclick = async () => {
+  loginMsg.innerHTML = '';
+  try{ await createUserWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value); }
+  catch(e){ showMsg(loginMsg, pesanError(e.code), 'err'); }
+};
+document.getElementById('logoutBtn').onclick = () => signOut(auth);
+
+document.querySelectorAll('.navitem').forEach(item => {
+  item.onclick = () => {
+    document.querySelectorAll('.navitem').forEach(x => x.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.getElementById('page-' + item.dataset.page).classList.remove('hidden');
+  };
+});
+
+let listeners = [];
+let schoolId = null;
+function clearListeners(){ listeners.forEach(u => u()); listeners = []; }
+onAuthStateChanged(auth, (user) => {
+  clearListeners();
+  if(user){
+    schoolId = user.uid;
+    loginScreen.classList.add('hidden');
+    appScreen.classList.remove('hidden');
+    muatSekolah(); muatKepsek(); muatPegawai(); muatDinas();
+  }else{
+    schoolId = null;
+    appScreen.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+    loginEmail.value=''; loginPassword.value='';
+  }
+});
+
+const formSekolah = document.getElementById('formSekolah');
+const msgSekolah = document.getElementById('msgSekolah');
+let dataSekolah = {};
+
+// Baca file gambar, kecilkan ukurannya, lalu ubah jadi data URL (base64) supaya
+// bisa disimpan langsung di Firestore tanpa perlu Firebase Storage.
+function bacaGambarKeDataUrl(file, maxDimensi){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        const skala = Math.min(1, maxDimensi / Math.max(w, h));
+        w = Math.max(1, Math.round(w*skala)); h = Math.max(1, Math.round(h*skala));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const pakaiPng = file.type === 'image/png' || file.type === 'image/gif';
+        resolve(canvas.toDataURL(pakaiPng ? 'image/png' : 'image/jpeg', 0.85));
+      };
+      img.onerror = () => reject(new Error('Gagal membaca gambar. Pastikan file berupa gambar yang valid.'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('Gagal membaca file.'));
+    reader.readAsDataURL(file);
+  });
+}
+async function prosesUploadLogo(file){
+  let dataUrl = await bacaGambarKeDataUrl(file, 240);
+  if(dataUrl.length > 700000){ dataUrl = await bacaGambarKeDataUrl(file, 140); }
+  if(dataUrl.length > 900000){ throw new Error('Ukuran gambar masih terlalu besar setelah dikompres. Gunakan logo yang lebih sederhana/kecil.'); }
+  return dataUrl;
+}
+function tampilkanPreviewLogo(hiddenId, previewId, hapusBtnId){
+  const hidden = document.getElementById(hiddenId);
+  const preview = document.getElementById(previewId);
+  const hapusBtn = document.getElementById(hapusBtnId);
+  if(hidden.value){
+    preview.src = hidden.value;
+    preview.style.display = 'inline-block';
+    hapusBtn.classList.remove('hidden');
+  } else {
+    preview.src = '';
+    preview.style.display = 'none';
+    hapusBtn.classList.add('hidden');
+  }
+}
+function pasangUploadLogo(fileInputId, hiddenInputId, previewId, hapusBtnId){
+  const fileInput = document.getElementById(fileInputId);
+  const hidden = document.getElementById(hiddenInputId);
+  fileInput.onchange = async () => {
+    const file = fileInput.files[0];
+    if(!file) return;
+    if(!file.type.startsWith('image/')){ showMsg(msgSekolah,'File harus berupa gambar.','err'); fileInput.value=''; return; }
+    if(file.size > 8*1024*1024){ showMsg(msgSekolah,'Ukuran file maksimal 8MB.','err'); fileInput.value=''; return; }
+    try{
+      hidden.value = await prosesUploadLogo(file);
+      tampilkanPreviewLogo(hiddenInputId, previewId, hapusBtnId);
+    }catch(err){ showMsg(msgSekolah, err.message || 'Gagal memproses gambar.', 'err'); }
+    finally{ fileInput.value = ''; }
+  };
+  document.getElementById(hapusBtnId).onclick = () => {
+    hidden.value = '';
+    tampilkanPreviewLogo(hiddenInputId, previewId, hapusBtnId);
+  };
+}
+pasangUploadLogo('skLogoKiriFile','skLogoKiri','skLogoKiriPreview','skLogoKiriHapus');
+pasangUploadLogo('skLogoKananFile','skLogoKanan','skLogoKananPreview','skLogoKananHapus');
+
+async function muatSekolah(){
+  const snap = await getDoc(doc(db,'sekolah',schoolId));
+  if(snap.exists()){
+    dataSekolah = snap.data();
+    document.getElementById('skInstansiInduk').value = dataSekolah.instansiInduk || '';
+    document.getElementById('skNama').value = dataSekolah.nama || '';
+    document.getElementById('skNpsn').value = dataSekolah.npsn || '';
+    document.getElementById('skKontak').value = dataSekolah.kontak || '';
+    document.getElementById('skKodeKlasifikasi').value = dataSekolah.kodeKlasifikasi || '';
+    document.getElementById('skKodeSekolah').value = dataSekolah.kodeSekolah || '';
+    document.getElementById('skAlamat').value = dataSekolah.alamat || '';
+    document.getElementById('skKecamatan').value = dataSekolah.kecamatan || '';
+    document.getElementById('skKabupaten').value = dataSekolah.kabupaten || '';
+    document.getElementById('skLogoKiri').value = dataSekolah.logoKiri || '';
+    document.getElementById('skLogoKanan').value = dataSekolah.logoKanan || '';
+    tampilkanPreviewLogo('skLogoKiri','skLogoKiriPreview','skLogoKiriHapus');
+    tampilkanPreviewLogo('skLogoKanan','skLogoKananPreview','skLogoKananHapus');
+  }
+}
+formSekolah.onsubmit = async (e) => {
+  e.preventDefault();
+  dataSekolah = {
+    instansiInduk: document.getElementById('skInstansiInduk').value.trim(),
+    nama: document.getElementById('skNama').value.trim(),
+    npsn: document.getElementById('skNpsn').value.trim(),
+    kontak: document.getElementById('skKontak').value.trim(),
+    kodeKlasifikasi: document.getElementById('skKodeKlasifikasi').value.trim(),
+    kodeSekolah: document.getElementById('skKodeSekolah').value.trim(),
+    alamat: document.getElementById('skAlamat').value.trim(),
+    kecamatan: document.getElementById('skKecamatan').value.trim(),
+    kabupaten: document.getElementById('skKabupaten').value.trim(),
+    logoKiri: document.getElementById('skLogoKiri').value.trim(),
+    logoKanan: document.getElementById('skLogoKanan').value.trim(),
+  };
+  try{ await setDoc(doc(db,'sekolah',schoolId), dataSekolah); showMsg(msgSekolah,'Data sekolah tersimpan.','ok'); }
+  catch(err){ showMsg(msgSekolah,'Gagal menyimpan data.','err'); }
+};
+
+const formKepsek = document.getElementById('formKepsek');
+const msgKepsek = document.getElementById('msgKepsek');
+let dataKepsek = {};
+async function muatKepsek(){
+  const snap = await getDoc(doc(db,'kepalaSekolah',schoolId));
+  if(snap.exists()){
+    dataKepsek = snap.data();
+    document.getElementById('ksNama').value = dataKepsek.nama || '';
+    document.getElementById('ksNip').value = dataKepsek.nip || '';
+    document.getElementById('ksPangkat').value = dataKepsek.pangkat || '';
+    document.getElementById('ksSk').value = dataKepsek.sk || '';
+  }
+}
+formKepsek.onsubmit = async (e) => {
+  e.preventDefault();
+  dataKepsek = {
+    nama: document.getElementById('ksNama').value.trim(),
+    nip: document.getElementById('ksNip').value.trim(),
+    pangkat: document.getElementById('ksPangkat').value.trim(),
+    sk: document.getElementById('ksSk').value.trim(),
+  };
+  try{ await setDoc(doc(db,'kepalaSekolah',schoolId), dataKepsek); showMsg(msgKepsek,'Data kepala sekolah tersimpan.','ok'); }
+  catch(err){ showMsg(msgKepsek,'Gagal menyimpan data.','err'); }
+};
+
+const formPegawai = document.getElementById('formPegawai');
+const msgPegawai = document.getElementById('msgPegawai');
+const listPegawai = document.getElementById('listPegawai');
+const btnBatalEditPegawai = document.getElementById('btnBatalEditPegawai');
+let daftarPegawai = [];
+function muatPegawai(){
+  const q = query(collection(db,'sekolah',schoolId,'pegawai'), orderBy('nama'));
+  const unsub = onSnapshot(q, (snap) => {
+    daftarPegawai = [];
+    snap.forEach(d => daftarPegawai.push({ id:d.id, ...d.data() }));
+    renderPegawai(); isiOpsiPegawai(); isiOpsiPengikut(document.getElementById('dnPegawai').value); updateDashboard();
+  });
+  listeners.push(unsub);
+}
+function renderPegawai(){
+  if(daftarPegawai.length === 0){ listPegawai.innerHTML = '<div class="empty">Belum ada data guru/pegawai.</div>'; return; }
+  let html = '<table class="list"><tr><th>Nama</th><th>NIP/NUPTK</th><th>Jabatan</th><th>Pangkat/Gol.</th><th>Gaji Pokok</th><th></th></tr>';
+  daftarPegawai.forEach(p => {
+    html += `<tr><td>${p.nama}</td><td>${p.nip||'-'}</td><td>${p.jabatan||'-'}</td><td>${p.pangkat||'-'}</td><td>${p.gajiPokok||'-'}</td>
+      <td class="rowactions">
+        <button class="btn small ghost" onclick="window.editPegawai('${p.id}')">Ubah</button>
+        <button class="btn small danger" onclick="window.hapusPegawai('${p.id}')">Hapus</button>
+      </td></tr>`;
+  });
+  html += '</table>';
+  listPegawai.innerHTML = html;
+}
+formPegawai.onsubmit = async (e) => {
+  e.preventDefault();
+  const editId = document.getElementById('pgEditId').value;
+  const data = {
+    nama: document.getElementById('pgNama').value.trim(),
+    nip: document.getElementById('pgNip').value.trim(),
+    jabatan: document.getElementById('pgJabatan').value.trim(),
+    pangkat: document.getElementById('pgPangkat').value.trim(),
+    gajiPokok: document.getElementById('pgGajiPokok').value.trim(),
+  };
+  try{
+    if(editId){ await updateDoc(doc(db,'sekolah',schoolId,'pegawai',editId), data); showMsg(msgPegawai,'Data pegawai diperbarui.','ok'); }
+    else{ await addDoc(collection(db,'sekolah',schoolId,'pegawai'), data); showMsg(msgPegawai,'Pegawai ditambahkan.','ok'); }
+    formPegawai.reset(); document.getElementById('pgEditId').value='';
+    document.getElementById('btnSimpanPegawai').textContent = 'Tambah Pegawai';
+    btnBatalEditPegawai.classList.add('hidden');
+  }catch(err){ showMsg(msgPegawai,'Gagal menyimpan data.','err'); }
+};
+btnBatalEditPegawai.onclick = () => {
+  formPegawai.reset(); document.getElementById('pgEditId').value='';
+  document.getElementById('btnSimpanPegawai').textContent = 'Tambah Pegawai';
+  btnBatalEditPegawai.classList.add('hidden');
+};
+window.editPegawai = (id) => {
+  const p = daftarPegawai.find(x => x.id === id); if(!p) return;
+  document.getElementById('pgNama').value = p.nama;
+  document.getElementById('pgNip').value = p.nip || '';
+  document.getElementById('pgJabatan').value = p.jabatan || '';
+  document.getElementById('pgPangkat').value = p.pangkat || '';
+  document.getElementById('pgGajiPokok').value = p.gajiPokok || '';
+  document.getElementById('pgEditId').value = id;
+  document.getElementById('btnSimpanPegawai').textContent = 'Simpan Perubahan';
+  btnBatalEditPegawai.classList.remove('hidden');
+};
+window.hapusPegawai = async (id) => { if(!confirm('Hapus data pegawai ini?')) return; await deleteDoc(doc(db,'sekolah',schoolId,'pegawai',id)); };
+
+const modalDinas = document.getElementById('modalDinas');
+const formDinas = document.getElementById('formDinas');
+const msgDinas = document.getElementById('msgDinas');
+const listDinas = document.getElementById('listDinas');
+let daftarDinas = [];
+
+function bulanRomawi(m){
+  const r = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+  return r[m-1] || m;
+}
+// Daftar Hari Libur Nasional & Cuti Bersama (SKB 3 Menteri). Tambahkan/ubah setiap tahun.
+const HARI_LIBUR_NASIONAL = new Set([
+  // 2026
+  '2026-01-01', // Tahun Baru Masehi
+  '2026-01-16', // Isra Mi'raj Nabi Muhammad SAW
+  '2026-02-16', // Cuti Bersama Imlek
+  '2026-02-17', // Tahun Baru Imlek
+  '2026-03-18', // Cuti Bersama Nyepi
+  '2026-03-19', // Hari Suci Nyepi
+  '2026-03-20', // Cuti Bersama Idul Fitri
+  '2026-03-21', // Idul Fitri (Hari 1)
+  '2026-03-22', // Idul Fitri (Hari 2)
+  '2026-03-23', // Cuti Bersama Idul Fitri
+  '2026-03-24', // Cuti Bersama Idul Fitri
+  '2026-04-03', // Wafat Yesus Kristus
+  '2026-04-05', // Kebangkitan Yesus Kristus (Paskah)
+  '2026-05-01', // Hari Buruh Internasional
+  '2026-05-14', // Kenaikan Yesus Kristus
+  '2026-05-15', // Cuti Bersama Kenaikan Yesus Kristus
+  '2026-05-27', // Idul Adha
+  '2026-05-28', // Cuti Bersama Idul Adha
+  '2026-05-31', // Hari Raya Waisak
+  '2026-06-01', // Hari Lahir Pancasila
+  '2026-06-16', // Tahun Baru Islam 1 Muharram
+  '2026-08-17', // HUT Kemerdekaan RI
+  '2026-08-25', // Maulid Nabi Muhammad SAW
+  '2026-12-24', // Cuti Bersama Natal
+  '2026-12-25', // Hari Raya Natal
+]);
+function isTanggalLiburAtauMinggu(iso){
+  if(!iso) return false;
+  const d = new Date(iso+'T00:00:00');
+  if(d.getDay() === 0) return true; // Minggu
+  return HARI_LIBUR_NASIONAL.has(iso);
+}
+// Mundurkan tanggal (dari tanggal berangkat) sampai bukan hari Minggu/libur nasional
+function geserTanggalSuratOtomatis(isoBerangkat){
+  if(!isoBerangkat) return '';
+  let d = new Date(isoBerangkat+'T00:00:00');
+  let batas = 0;
+  while(isTanggalLiburAtauMinggu(d.toISOString().slice(0,10)) && batas < 60){
+    d.setDate(d.getDate()-1);
+    batas++;
+  }
+  return d.toISOString().slice(0,10);
+}
+function kodeSekolahOtomatis(){
+  if(dataSekolah.kodeSekolah) return dataSekolah.kodeSekolah;
+  return (dataSekolah.nama||'SEKOLAH').trim().toUpperCase().replace(/\s+/g,'-');
+}
+function nomorSuratBerikutnya(){
+  const now = new Date();
+  const bulan = now.getMonth()+1, tahun = now.getFullYear();
+  const dalamBulanIni = daftarDinas.filter(d => {
+    const src = d.tanggalSurat || d.berangkat;
+    if(!src) return false;
+    const [y,m] = src.split('-');
+    return parseInt(y)===tahun && parseInt(m)===bulan;
+  });
+  const urutan = dalamBulanIni.length + 1;
+  const klas = dataSekolah.kodeKlasifikasi || '420';
+  return `${klas}/${urutan}/${kodeSekolahOtomatis()}/${bulanRomawi(bulan)}/${tahun}`;
+}
+document.getElementById('btnBukaFormDinas').onclick = () => {
+  formDinas.reset(); document.getElementById('dnEditId').value='';
+  document.getElementById('dnTempatBerangkat').value = dataSekolah.nama || '';
+  document.getElementById('dnTempatSurat').value = dataSekolah.nama || '';
+  document.getElementById('dnNomor').value = nomorSuratBerikutnya();
+  isiOpsiPengikut('', []);
+  document.getElementById('dnKeperluanCari').value = '';
+  syncKeperluanChecklistDariTeks();
+  filterChecklistKeperluan();
+  document.getElementById('dnTanggalSurat').removeAttribute('max');
+  document.getElementById('modalDinasTitle').textContent = 'Tambah Perjalanan Dinas';
+  msgDinas.innerHTML=''; modalDinas.classList.remove('hidden');
+};
+// Tanggal surat dikunci: maksimal = tanggal berangkat, dan otomatis digeser mundur
+// bila tanggal berangkat jatuh pada hari Minggu atau libur nasional.
+document.getElementById('dnBerangkat').addEventListener('change', () => {
+  const berangkat = document.getElementById('dnBerangkat').value;
+  const suratInput = document.getElementById('dnTanggalSurat');
+  if(berangkat){
+    suratInput.max = berangkat;
+    if(!suratInput.value || suratInput.value > berangkat){
+      suratInput.value = geserTanggalSuratOtomatis(berangkat);
+    }
+  } else {
+    suratInput.removeAttribute('max');
+  }
+  refreshTahunKeperluan();
+});
+document.getElementById('closeModalDinas').onclick = () => modalDinas.classList.add('hidden');
+
+// Daftar kegiatan umum untuk diceklis pada Tujuan/Maksud Perjalanan. Tambah/ubah sesuai kebutuhan sekolah.
+// tahun:true -> otomatis ditambahkan " Tahun XXXX" mengikuti Tanggal Berangkat (atau tahun berjalan bila belum diisi).
+const DAFTAR_KEPERLUAN = [
+  { teks: 'Pencairan dana BOS/BOSP' },
+  { teks: 'Mengikuti rapat koordinasi di Dinas Pendidikan' },
+  { teks: 'Mengikuti Bimbingan Teknis (Bimtek) / Pelatihan / Diklat' },
+  { teks: 'Mengambil/menyerahkan dokumen atau berkas dinas' },
+  { teks: 'Mengikuti sosialisasi program dari Dinas Pendidikan' },
+  { teks: 'Mengikuti Musyawarah Kerja Kepala Sekolah (MKKS)' },
+  { teks: 'Mengikuti Musyawarah Guru Mata Pelajaran (MGMP/KKG)' },
+  { teks: 'Mengikuti/mengawasi pelaksanaan Ujian atau Asesmen' },
+  { teks: 'Mendampingi siswa mengikuti lomba/kegiatan pembinaan' },
+  { teks: 'Konsultasi administrasi sekolah' },
+  { teks: 'Mengambil/mengantar rapor, ijazah, atau data siswa' },
+  { teks: 'Konsultasi ARKAS' },
+  { teks: 'Konsultasi Dapodik' },
+  { teks: 'Print Out Rekening Koran' },
+  { teks: 'Pengambilan Rekomendasi Pencairan Tahap 1', tahun: true },
+  { teks: 'Pengambilan Rekomendasi Pencairan Tahap 2', tahun: true },
+  { teks: 'Pembayaran Pajak Makan dan Minum BOSP Tahap 1', tahun: true },
+  { teks: 'Pembayaran Pajak Makan dan Minum BOSP Tahap 2', tahun: true },
+  { teks: 'Pembayaran Pajak ATK BOSP Tahap 1', tahun: true },
+  { teks: 'Pembayaran Pajak ATK BOSP Tahap 2', tahun: true },
+  { teks: 'Pesan Belanja Siplah BOSP Tahap 1', tahun: true },
+  { teks: 'Pesan Belanja Siplah BOSP Tahap 2', tahun: true },
+  { teks: 'Pengambilan Barang Belanja Siplah BOSP Tahap 1', tahun: true },
+  { teks: 'Pengambilan Barang Belanja Siplah BOSP Tahap 2', tahun: true },
+  { teks: 'Pelatihan Kurikulum' },
+  { teks: 'Bimtek Arkas' },
+  { teks: 'Bimtek Dapodik' },
+  { teks: 'Melaksanakan tugas kedinasan lainnya' },
+];
+function tahunUntukKeperluan(){
+  const berangkat = document.getElementById('dnBerangkat').value;
+  if(berangkat){ const y = berangkat.split('-')[0]; if(y) return y; }
+  return String(new Date().getFullYear());
+}
+function labelKeperluan(item){
+  return item.tahun ? `${item.teks} Tahun ${tahunUntukKeperluan()}` : item.teks;
+}
+function toggleBarisKeperluan(teks, dicentang){
+  const ta = document.getElementById('dnKeperluan');
+  let baris = ta.value.split('\n').map(s => s.trim()).filter(Boolean);
+  if(dicentang){
+    if(!baris.includes(teks)) baris.push(teks);
+  } else {
+    baris = baris.filter(b => b !== teks);
+  }
+  ta.value = baris.join('\n');
+}
+function syncKeperluanChecklistDariTeks(){
+  const baris = document.getElementById('dnKeperluan').value.split('\n').map(s => s.trim()).filter(Boolean);
+  document.querySelectorAll('#dnKeperluanChecklist input[type=checkbox]').forEach(cb => {
+    cb.checked = baris.includes(cb.value);
+  });
+}
+function isiChecklistKeperluan(){
+  const cont = document.getElementById('dnKeperluanChecklist');
+  cont.innerHTML = '';
+  DAFTAR_KEPERLUAN.forEach(item => {
+    const label = document.createElement('label');
+    label.className = 'citem';
+    const teksLabel = labelKeperluan(item);
+    label.dataset.teks = teksLabel.toLowerCase();
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = teksLabel;
+    cb.onchange = () => toggleBarisKeperluan(cb.value, cb.checked);
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(' ' + teksLabel));
+    cont.appendChild(label);
+  });
+  const pesanKosong = document.createElement('div');
+  pesanKosong.className = 'empty2 hidden';
+  pesanKosong.id = 'dnKeperluanTidakDitemukan';
+  pesanKosong.textContent = 'Tidak ada kegiatan yang cocok. Gunakan kotak "Tambah Kegiatan Lain" di bawah.';
+  cont.appendChild(pesanKosong);
+  syncKeperluanChecklistDariTeks();
+  filterChecklistKeperluan();
+}
+function filterChecklistKeperluan(){
+  const q = document.getElementById('dnKeperluanCari').value.trim().toLowerCase();
+  let adaYangCocok = false;
+  document.querySelectorAll('#dnKeperluanChecklist .citem').forEach(el => {
+    const cocok = !q || el.dataset.teks.includes(q);
+    el.style.display = cocok ? 'flex' : 'none';
+    if(cocok) adaYangCocok = true;
+  });
+  document.getElementById('dnKeperluanTidakDitemukan').classList.toggle('hidden', adaYangCocok || !q);
+}
+document.getElementById('dnKeperluanCari').addEventListener('input', filterChecklistKeperluan);
+// Saat tanggal berangkat berubah, perbarui label item bertahun (mis. dari "Tahun 2025" -> "Tahun 2026")
+// dan ganti baris yang sudah tercentang di kotak teks supaya tahunnya ikut ter-update.
+function refreshTahunKeperluan(){
+  const ta = document.getElementById('dnKeperluan');
+  let baris = ta.value.split('\n').map(s => s.trim()).filter(Boolean);
+  DAFTAR_KEPERLUAN.filter(it => it.tahun).forEach(it => {
+    const pola = new RegExp('^' + it.teks.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ' Tahun \\d{4}$');
+    const idx = baris.findIndex(b => pola.test(b));
+    if(idx !== -1){ baris[idx] = labelKeperluan(it); }
+  });
+  ta.value = baris.join('\n');
+  isiChecklistKeperluan();
+}
+isiChecklistKeperluan();
+document.getElementById('btnTambahKeperluanLain').onclick = () => {
+  const input = document.getElementById('dnKeperluanLain');
+  const teks = input.value.trim();
+  if(!teks) return;
+  toggleBarisKeperluan(teks, true);
+  input.value = '';
+};
+
+function isiOpsiPegawai(){
+  const sel = document.getElementById('dnPegawai');
+  sel.innerHTML = '<option value="">-- pilih --</option>' +
+    daftarPegawai.map(p => `<option value="${p.id}">${p.nama}${p.jabatan ? ' — '+p.jabatan : ''}</option>`).join('');
+}
+function isiOpsiPengikut(excludeId, preselectedIds){
+  const cont = document.getElementById('dnPengikutList');
+  const terpilih = preselectedIds || Array.from(cont.querySelectorAll('input[type=checkbox]:checked')).map(c => c.value);
+  const daftar = daftarPegawai.filter(p => p.id !== excludeId);
+  cont.innerHTML = daftar.length
+    ? daftar.map(p => `<label class="citem"><input type="checkbox" value="${p.id}"${terpilih.includes(p.id) ? ' checked' : ''}> ${p.nama}${p.jabatan ? ' — '+p.jabatan : ''}</label>`).join('')
+    : '<div class="empty2">Belum ada pegawai lain yang bisa dipilih.</div>';
+}
+document.getElementById('dnPegawai').onchange = () => {
+  const id = document.getElementById('dnPegawai').value;
+  isiOpsiPengikut(id);
+  const p = daftarPegawai.find(x => x.id === id);
+  if(p && p.gajiPokok){ document.getElementById('dnGajiPokok').value = p.gajiPokok; }
+};
+formDinas.onsubmit = async (e) => {
+  e.preventDefault();
+  const pegawaiId = document.getElementById('dnPegawai').value;
+  const p = daftarPegawai.find(x => x.id === pegawaiId);
+  if(!p){ showMsg(msgDinas,'Pilih guru/pegawai terlebih dahulu.','err'); return; }
+  const berangkat = document.getElementById('dnBerangkat').value;
+  const kembali = document.getElementById('dnKembali').value;
+  if(kembali < berangkat){ showMsg(msgDinas,'Tanggal kembali tidak boleh sebelum tanggal berangkat.','err'); return; }
+  let tanggalSuratInput = document.getElementById('dnTanggalSurat').value;
+  if(tanggalSuratInput && tanggalSuratInput > berangkat){ showMsg(msgDinas,'Tanggal surat tidak boleh setelah tanggal berangkat.','err'); return; }
+  if(!tanggalSuratInput || isTanggalLiburAtauMinggu(tanggalSuratInput)){
+    tanggalSuratInput = geserTanggalSuratOtomatis(tanggalSuratInput || berangkat);
+    document.getElementById('dnTanggalSurat').value = tanggalSuratInput;
+  }
+  const editId = document.getElementById('dnEditId').value;
+  const pengikutIds = Array.from(document.querySelectorAll('#dnPengikutList input[type=checkbox]:checked')).map(c => c.value);
+  const pengikutDetail = pengikutIds.map(id => {
+    const pp = daftarPegawai.find(x => x.id === id);
+    return pp ? { id, nama: pp.nama, nip: pp.nip||'-', jabatan: pp.jabatan||'-', pangkat: pp.pangkat||'-', gajiPokok: pp.gajiPokok||'-' } : null;
+  }).filter(Boolean);
+  const data = {
+    pegawaiId, namaPegawai: p.nama, nip: p.nip||'-', jabatan: p.jabatan||'-', pangkat: p.pangkat||'-',
+    nomorSurat: document.getElementById('dnNomor').value.trim(),
+    transport: document.getElementById('dnTransport').value,
+    dasar: document.getElementById('dnDasar').value.trim(),
+    tujuan: document.getElementById('dnTujuan').value.trim(),
+    tempatBerangkat: document.getElementById('dnTempatBerangkat').value.trim(),
+    keperluan: document.getElementById('dnKeperluan').value.trim(),
+    berangkat, kembali,
+    gajiPokok: document.getElementById('dnGajiPokok').value.trim(),
+    tingkat: document.getElementById('dnTingkat').value,
+    pengikutIds,
+    pengikutDetail,
+    pengikut: pengikutDetail.map(pp => pp.nama).join(', '),
+    mataAnggaran: document.getElementById('dnMataAnggaran').value.trim(),
+    keteranganLain: document.getElementById('dnKeteranganLain').value.trim(),
+    tempatSurat: document.getElementById('dnTempatSurat').value.trim(),
+    tanggalSurat: tanggalSuratInput || berangkat,
+  };
+  try{
+    if(editId){ await updateDoc(doc(db,'sekolah',schoolId,'perjalanan_dinas',editId), data); }
+    else{ await addDoc(collection(db,'sekolah',schoolId,'perjalanan_dinas'), { ...data, status:'berlangsung', kepada:'', tembusan:'', kegiatan:'', kesimpulanSaran:'', tanggalLaporan:'', createdAt: serverTimestamp() }); }
+    modalDinas.classList.add('hidden');
+  }catch(err){ showMsg(msgDinas,'Gagal menyimpan data.','err'); }
+};
+function muatDinas(){
+  const q = query(collection(db,'sekolah',schoolId,'perjalanan_dinas'), orderBy('createdAt','desc'));
+  const unsub = onSnapshot(q, (snap) => {
+    daftarDinas = []; snap.forEach(d => daftarDinas.push({ id:d.id, ...d.data() }));
+    renderDinas(); updateDashboard();
+  });
+  listeners.push(unsub);
+}
+function fmtTgl(s){
+  if(!s) return '-';
+  const [y,m,dd] = s.split('-');
+  const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  return `${parseInt(dd)} ${bulan[parseInt(m)-1]} ${y}`;
+}
+// Format angka gaji pokok jadi format Rupiah pada hasil cetak, misal "3500000" atau "3.500.000" -> "Rp 3.500.000"
+function fmtRupiah(val){
+  if(val === undefined || val === null || val === '' || val === '-') return '-';
+  const angka = String(val).replace(/[^0-9]/g, '');
+  if(!angka) return String(val);
+  const n = parseInt(angka, 10);
+  if(isNaN(n)) return String(val);
+  return 'Rp ' + n.toLocaleString('id-ID');
+}
+function terbilang(n){
+  const satuan = ['','Satu','Dua','Tiga','Empat','Lima','Enam','Tujuh','Delapan','Sembilan','Sepuluh','Sebelas'];
+  if(n<12) return satuan[n];
+  if(n<20) return terbilang(n-10)+' Belas';
+  if(n<100){ const p=Math.floor(n/10), s=n%10; return (p===1?'Sepuluh':terbilang(p)+' Puluh') + (s? ' '+terbilang(s):''); }
+  return String(n);
+}
+function hitungLama(berangkat,kembali){
+  if(!berangkat||!kembali) return {days:0,text:'-'};
+  const days = Math.round((new Date(kembali)-new Date(berangkat))/86400000)+1;
+  return { days, text: `${days} ( ${terbilang(days)} ) Hari` };
+}
+
+function renderDinas(){
+  if(daftarDinas.length === 0){ listDinas.innerHTML = '<div class="empty">Belum ada data perjalanan dinas.</div>'; return; }
+  let html = '';
+  daftarDinas.forEach(d => {
+    html += `<div class="panel" style="padding:18px 20px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-weight:600;">${d.namaPegawai}</div>
+          <div style="color:var(--muted);font-size:.82rem;margin-top:2px;">${d.tujuan} · ${fmtTgl(d.berangkat)} – ${fmtTgl(d.kembali)}</div>
+        </div>
+        <span class="badge ${d.status}">${d.status==='selesai'?'Selesai':'Berlangsung'}</span>
+      </div>
+      <div class="rowactions" style="margin-top:14px;">
+        <button class="btn small gold" onclick="window.cetakDok('${d.id}','tugas')">Cetak Surat Tugas</button>
+        <button class="btn small gold" onclick="window.cetakDok('${d.id}','sppd')">Cetak SPPD</button>
+        <button class="btn small gold" onclick="window.cetakDok('${d.id}','laporan')">Cetak Laporan</button>
+        <button class="btn small ghost" onclick="window.isiLaporan('${d.id}')">Isi Laporan</button>
+        <button class="btn small ghost" onclick="window.editDinas('${d.id}')">Ubah</button>
+        <button class="btn small danger" onclick="window.hapusDinas('${d.id}')">Hapus</button>
+      </div>
+    </div>`;
+  });
+  listDinas.innerHTML = html;
+}
+window.editDinas = (id) => {
+  const d = daftarDinas.find(x => x.id === id); if(!d) return;
+  document.getElementById('dnPegawai').value = d.pegawaiId;
+  document.getElementById('dnNomor').value = d.nomorSurat || '';
+  document.getElementById('dnTransport').value = d.transport || 'Kendaraan Dinas';
+  document.getElementById('dnDasar').value = d.dasar || '';
+  document.getElementById('dnTujuan').value = d.tujuan;
+  document.getElementById('dnTempatBerangkat').value = d.tempatBerangkat || '';
+  document.getElementById('dnKeperluan').value = d.keperluan;
+  document.getElementById('dnKeperluanCari').value = '';
+  syncKeperluanChecklistDariTeks();
+  filterChecklistKeperluan();
+  document.getElementById('dnBerangkat').value = d.berangkat;
+  document.getElementById('dnKembali').value = d.kembali;
+  document.getElementById('dnGajiPokok').value = d.gajiPokok || '';
+  document.getElementById('dnTingkat').value = d.tingkat || 'Dalam Daerah';
+  isiOpsiPengikut(d.pegawaiId, d.pengikutIds || []);
+  document.getElementById('dnMataAnggaran').value = d.mataAnggaran || '';
+  document.getElementById('dnKeteranganLain').value = d.keteranganLain || '';
+  document.getElementById('dnTempatSurat').value = d.tempatSurat || '';
+  const dnTglSurat = document.getElementById('dnTanggalSurat');
+  if(d.berangkat){ dnTglSurat.max = d.berangkat; } else { dnTglSurat.removeAttribute('max'); }
+  dnTglSurat.value = d.tanggalSurat || '';
+  document.getElementById('dnEditId').value = id;
+  document.getElementById('modalDinasTitle').textContent = 'Ubah Perjalanan Dinas';
+  msgDinas.innerHTML=''; modalDinas.classList.remove('hidden');
+};
+window.hapusDinas = async (id) => { if(!confirm('Hapus data perjalanan dinas ini?')) return; await deleteDoc(doc(db,'sekolah',schoolId,'perjalanan_dinas',id)); };
+
+const modalLaporan = document.getElementById('modalLaporan');
+const formLaporan = document.getElementById('formLaporan');
+document.getElementById('closeModalLaporan').onclick = () => modalLaporan.classList.add('hidden');
+window.isiLaporan = (id) => {
+  const d = daftarDinas.find(x => x.id === id); if(!d) return;
+  document.getElementById('lpKepada').value = d.kepada || '';
+  document.getElementById('lpTembusan').value = d.tembusan || '';
+  document.getElementById('lpTanggal').value = d.tanggalLaporan || d.kembali || '';
+  document.getElementById('lpKegiatan').value = d.kegiatan || '';
+  document.getElementById('lpKesimpulan').value = d.kesimpulanSaran || '';
+  document.getElementById('lpEditId').value = id;
+  modalLaporan.classList.remove('hidden');
+};
+formLaporan.onsubmit = async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('lpEditId').value;
+  await updateDoc(doc(db,'sekolah',schoolId,'perjalanan_dinas',id), {
+    kepada: document.getElementById('lpKepada').value.trim(),
+    tembusan: document.getElementById('lpTembusan').value.trim(),
+    tanggalLaporan: document.getElementById('lpTanggal').value,
+    kegiatan: document.getElementById('lpKegiatan').value.trim(),
+    kesimpulanSaran: document.getElementById('lpKesimpulan').value.trim(),
+    status:'selesai'
+  });
+  modalLaporan.classList.add('hidden');
+};
+
+function updateDashboard(){
+  document.getElementById('statPegawai').textContent = daftarPegawai.length;
+  const now = new Date();
+  const bulanIni = daftarDinas.filter(d => {
+    if(!d.berangkat) return false;
+    const [y,m] = d.berangkat.split('-');
+    return parseInt(y)===now.getFullYear() && parseInt(m)-1===now.getMonth();
+  }).length;
+  document.getElementById('statBulanIni').textContent = bulanIni;
+  document.getElementById('statBerlangsung').textContent = daftarDinas.filter(d => d.status==='berlangsung').length;
+  const recent = daftarDinas.slice(0,5);
+  const el = document.getElementById('dashRecent');
+  if(recent.length===0){ el.innerHTML = '<div class="empty">Belum ada data.</div>'; return; }
+  let html = '<table class="list"><tr><th>Nama</th><th>Tujuan</th><th>Tanggal</th><th>Status</th></tr>';
+  recent.forEach(d => {
+    html += `<tr><td>${d.namaPegawai}</td><td>${d.tujuan}</td><td>${fmtTgl(d.berangkat)} – ${fmtTgl(d.kembali)}</td><td><span class="badge ${d.status}">${d.status==='selesai'?'Selesai':'Berlangsung'}</span></td></tr>`;
+  });
+  html += '</table>'; el.innerHTML = html;
+}
+
+function buildKop(){
+  const sk = dataSekolah || {};
+  const lines = (sk.instansiInduk||'').split('\n').filter(x=>x.trim()!=='')
+    .map(l=>`<div style="font-weight:700;font-size:.82rem;">${l.trim()}</div>`).join('');
+  const logoKiri = sk.logoKiri ? `<img src="${sk.logoKiri}" style="width:58px;height:58px;object-fit:contain;">` : '';
+  const logoKanan = sk.logoKanan ? `<img src="${sk.logoKanan}" style="width:58px;height:58px;object-fit:contain;">` : '';
+  return `<table style="width:100%;border-collapse:collapse;">
+    <tr>
+      <td style="width:66px;text-align:center;">${logoKiri}</td>
+      <td style="text-align:center;">
+        ${lines}
+        <div style="font-weight:800;font-size:1.12rem;">${(sk.nama||'(Nama Sekolah belum diisi)').toUpperCase()}</div>
+        <div style="font-style:italic;font-size:.78rem;">Alamat : ${sk.alamat||''}${sk.kecamatan?', Kec.'+sk.kecamatan:''}</div>
+      </td>
+      <td style="width:66px;text-align:center;">${logoKanan}</td>
+    </tr>
+  </table>
+  <div style="border-top:3px double #000;margin:4px 0 14px;"></div>`;
+}
+
+function cetakTugas(d){
+  const ks = dataKepsek||{}; const sk = dataSekolah||{};
+  const lama = hitungLama(d.berangkat,d.kembali);
+  return `${buildKop()}
+    <div class="judul">SURAT TUGAS</div>
+    <div class="nomor">NOMOR: ${d.nomorSurat||'-'}</div>
+    <table class="data">
+      <tr><td class="k">1&nbsp;&nbsp;Pejabat Pemberi Tugas</td><td>: Kepala ${(sk.nama||'-').toUpperCase()}</td></tr>
+      <tr><td class="k">2&nbsp;&nbsp;Penerima Tugas</td><td></td></tr>
+      <tr><td class="k" style="padding-left:22px;">a. Nama</td><td>: ${d.namaPegawai}</td></tr>
+      <tr><td class="k" style="padding-left:22px;">b. Pangkat/Gol</td><td>: ${d.pangkat}</td></tr>
+      <tr><td class="k" style="padding-left:22px;">c. Nip</td><td>: ${d.nip}</td></tr>
+      <tr><td class="k" style="padding-left:22px;">d. Jabatan</td><td>: ${d.jabatan}</td></tr>
+      <tr><td class="k">3&nbsp;&nbsp;Lama Tugas</td><td>: ${lama.text}</td></tr>
+      <tr><td class="k">4&nbsp;&nbsp;Jenis/sifat tugas</td><td>: ${d.keperluan}</td></tr>
+      <tr><td colspan="2">5&nbsp;&nbsp;Saudara diharuskan memberi laporan kepada Kepala ${(sk.nama||'-').toUpperCase()} selambat-lambatnya satu minggu setelah melaksanakan Tugas.</td></tr>
+    </table>
+    <table style="width:100%;margin-top:34px;">
+      <tr><td style="width:52%;"></td><td>
+        Ditetapkan di : ${d.tempatSurat||sk.nama||'-'}<br>
+        Pada Tanggal : ${fmtTgl(d.tanggalSurat||d.berangkat)}<br>
+        Kepala Sekolah,<div class="ttd-space"></div>
+        <b><u>${ks.nama||'.....................'}</u></b><br>Nip. ${ks.nip||'-'}
+      </td></tr>
+    </table>`;
+}
+
+function buildPengikutRows(d){
+  const daftar = d.pengikutDetail && d.pengikutDetail.length ? d.pengikutDetail : null;
+  if(!daftar){
+    return `<tr><td class="k">Nama Pengikut</td><td>: -</td></tr>
+      <tr><td class="k" style="padding-left:18px;">a. Pangkat dan Golongan menurut peraturan Gaji Pegawai Negeri Sipil</td><td>: -</td></tr>
+      <tr><td class="k" style="padding-left:18px;">b. Jabatan</td><td>: -</td></tr>
+      <tr><td class="k" style="padding-left:18px;">c. Gaji Pokok</td><td>: -</td></tr>
+      <tr><td class="k" style="padding-left:18px;">d. Tingkat menurut Peraturan Perjalanan Dinas</td><td>: -</td></tr>`;
+  }
+  return daftar.map((pk,i) => `
+      <tr><td class="k">Nama Pengikut${daftar.length>1?' '+(i+1):''}</td><td>: ${pk.nama}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">a. Pangkat dan Golongan menurut peraturan Gaji Pegawai Negeri Sipil</td><td>: ${pk.pangkat}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">b. Jabatan</td><td>: ${pk.jabatan}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">c. Gaji Pokok</td><td>: ${fmtRupiah(pk.gajiPokok)}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">d. Tingkat menurut Peraturan Perjalanan Dinas</td><td>: ${d.tingkat||'-'}</td></tr>`).join('');
+}
+function cetakSppd(d){
+  const ks=dataKepsek||{}; const sk=dataSekolah||{};
+  const lama = hitungLama(d.berangkat,d.kembali);
+  const page1 = `${buildKop()}
+    <div class="judul underline">SURAT PERJALANAN DINAS</div>
+    <div class="nomor">NOMOR: ${d.nomorSurat||'-'}</div>
+    <table class="data bordered">
+      <tr><td class="k">Pejabat yang berwewenang memberi perintah</td><td>: Kepala Sekolah</td></tr>
+      <tr><td class="k">1&nbsp;&nbsp;Nama Pegawai yang diperintahkan</td><td>: ${d.namaPegawai}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">a. Pangkat dan Golongan menurut peraturan Gaji Pegawai Negeri Sipil</td><td>: ${d.pangkat}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">b. Jabatan</td><td>: ${d.jabatan}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">c. Gaji Pokok</td><td>: ${fmtRupiah(d.gajiPokok)}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">d. Tingkat menurut Peraturan Perjalanan Dinas</td><td>: ${d.tingkat||'-'}</td></tr>
+      <tr><td class="k">Maksud Perjalanan Dinas</td><td>: ${d.keperluan}</td></tr>
+      <tr><td class="k">Alat angkutan yang digunakan</td><td>: ${d.transport}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">a. Tempat Berangkat</td><td>: ${d.tempatBerangkat||sk.nama||'-'}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">b. Tempat Tujuan</td><td>: ${d.tujuan}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">a. Lamanya Perjalanan Dinas</td><td>: ${lama.text}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">b. Tanggal Berangkat</td><td>: ${fmtTgl(d.berangkat)}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">c. Tanggal harus kembali</td><td>: ${fmtTgl(d.kembali)}</td></tr>
+      ${buildPengikutRows(d)}
+      <tr><td class="k">Pembebanan Anggaran</td><td></td></tr>
+      <tr><td class="k" style="padding-left:18px;">a. Instansi</td><td>: ${sk.nama||'-'}</td></tr>
+      <tr><td class="k" style="padding-left:18px;">b. Mata Anggaran</td><td>: ${d.mataAnggaran||'-'}</td></tr>
+      <tr><td class="k">Keterangan Lain – lain</td><td>: ${d.keteranganLain||''}</td></tr>
+    </table>
+    <table style="width:100%;margin-top:26px;">
+      <tr><td style="width:52%;"></td><td>
+        Dikeluarkan di : ${d.tempatSurat||sk.nama||'-'}<br>
+        Pada tanggal : ${fmtTgl(d.tanggalSurat||d.berangkat)}<br>
+        Kepala Sekolah<div class="ttd-space"></div>
+        <b><u>${ks.nama||'.....................'}</u></b><br>Nip. ${ks.nip||'-'}
+      </td></tr>
+    </table>`;
+
+  const tb = d.tempatBerangkat||sk.nama||'-';
+  const page2 = `<div class="pagebreak"></div>
+    <table class="lanjutan-tbl">
+      <tr>
+        <td style="width:5%;">I</td>
+        <td style="width:47.5%;">
+          Berangkat dari (tempat kedudukan) : ${tb}<br>
+          Pada tanggal : ${fmtTgl(d.berangkat)}<br>Ke : ${d.tujuan}<br><br>
+          Kepala Sekolah/KPA<div class="ttd-space"></div>${ks.nama||'.....................'}<br>Nip. ${ks.nip||'-'}
+        </td>
+        <td style="width:47.5%;"></td>
+      </tr>
+      <tr>
+        <td>II</td>
+        <td>Tiba di : ${d.tujuan}<br>Pada tanggal : ${fmtTgl(d.kembali)}<div class="ttd-space"></div>........................................<br>Nip. ........................................</td>
+        <td>Berangkat dari : ${d.tujuan}<br>Ke : ${tb}<br>Pada tanggal : ${fmtTgl(d.kembali)}<div class="ttd-space"></div>........................................<br>Nip. ........................................</td>
+      </tr>
+      <tr><td>III</td><td>Tiba di :<br>Pada tanggal :<br>Kepala :</td><td>Berangkat dari :<br>Ke :<br>Pada tanggal :<br>Kepala :</td></tr>
+      <tr><td>IV</td><td>Tiba di :<br>Pada tanggal :<br>Kepala :</td><td>Berangkat dari :<br>Ke :<br>Pada tanggal :<br>Kepala :</td></tr>
+      <tr><td>V</td><td colspan="2">
+        Tiba kembali di : ${tb} (tempat kedudukan)<br>Pada Tanggal : ${fmtTgl(d.kembali)}<br><br>
+        Telah diperiksa dengan keterangan bahwa perjalanan tersebut di atas benar-benar dilaksanakan atas perintah dan semata-mata untuk kepentingan jabatan serta dalam waktu yang sesingkat-singkatnya.<br><br>
+        <table style="width:100%;"><tr>
+          <td style="width:50%;text-align:center;border:none;">Kepala Sekolah<div class="ttd-space"></div>${ks.nama||'.....................'}<br>Nip.${ks.nip||'-'}</td>
+          <td style="width:50%;text-align:center;border:none;">Kepala Sekolah<div class="ttd-space"></div>${ks.nama||'.....................'}<br>Nip.${ks.nip||'-'}</td>
+        </tr></table>
+      </td></tr>
+      <tr><td>VI</td><td colspan="2">Catatan lain-lain : ${d.keteranganLain||''}</td></tr>
+      <tr><td>VII</td><td colspan="2" style="font-size:.74rem;">Perhatian : Pengguna atau Kuasa Pengguna Anggaran yang menerbitkan SPD, Pegawai yang melakukan Perjalanan Dinas, Para Pejabat yang mengesahkan tanggal berangkat/tiba serta Bendahara Pengeluaran bertanggung jawab berdasarkan Peraturan-peraturan Keuangan Negara, apabila Negara menderita rugi akibat kesalahan, kelalaian dan kealpaan.</td></tr>
+    </table>`;
+  return page1 + page2;
+}
+
+function cetakLaporan(d){
+  const sk=dataSekolah||{};
+  const lama = hitungLama(d.berangkat,d.kembali);
+  const kegiatanItems = (d.kegiatan||'').split('\n').filter(x=>x.trim()!=='')
+    .map((l,i)=>`<div>${i+1}&nbsp;&nbsp;${l.trim()}</div>`).join('') || '-';
+  const tglLap = d.tanggalLaporan || d.kembali;
+  return `${buildKop()}
+    <div class="judul underline">LAPORAN PERJALANAN DINAS</div>
+    <table class="data" style="margin-top:16px;">
+      <tr><td class="k" style="width:110px;">Kepada</td><td>: ${d.kepada||'-'}</td></tr>
+      <tr><td class="k">Dari</td><td>: ${d.namaPegawai} / ${d.nip}</td></tr>
+      <tr><td class="k">Tanggal</td><td>: ${fmtTgl(tglLap)}</td></tr>
+      <tr><td class="k">Tembusan</td><td>: ${d.tembusan||'-'}</td></tr>
+    </table>
+    <p><b>I. DASAR</b><br>${d.dasar||'-'}</p>
+    <p><b>II. MAKSUD DAN TUJUAN</b><br>${d.keperluan}</p>
+    <p><b>III. WAKTU DAN TEMPAT</b><br>
+      1. Waktu<br>Waktu kegiatan dilaksanakan selama ${lama.text} terhitung mulai tanggal ${fmtTgl(d.berangkat)} sampai dengan tanggal ${fmtTgl(d.kembali)}<br>
+      2. Tempat<br>${d.tujuan}</p>
+    <p><b>IV. KEGIATAN YANG DILAKSANAKAN</b><br>${kegiatanItems}</p>
+    <p><b>V. KESIMPULAN DAN SARAN</b><br>${(d.kesimpulanSaran||'-').replace(/\n/g,'<br>')}</p>
+    <p><b>VI. PENUTUP</b><br>Demikian laporan perjalanan dinas ini dibuat sebagai bentuk pertanggung jawaban atas tugas yang diberikan</p>
+    <table style="width:100%;margin-top:20px;">
+      <tr><td style="width:52%;"></td><td>
+        ${d.tempatSurat||sk.nama||'-'}, ${fmtTgl(tglLap)}<br>Petugas<div class="ttd-space"></div>
+        <b><u>${d.namaPegawai}</u></b><br>Nip.${d.nip}
+      </td></tr>
+    </table>`;
+}
+
+window.cetakDok = (id, jenis) => {
+  const d = daftarDinas.find(x => x.id === id); if(!d) return;
+  let isi = '';
+  if(jenis === 'tugas') isi = cetakTugas(d);
+  else if(jenis === 'sppd') isi = cetakSppd(d);
+  else isi = cetakLaporan(d);
+  document.getElementById('suratIsi').innerHTML = isi;
+  window.print();
+};
+</script>
+</body>
+</html>
