@@ -72,6 +72,11 @@
   .badge{font-size:.74rem;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;}
   .badge.berlangsung{background:var(--warn-bg);color:var(--warn);}
   .badge.selesai{background:var(--ok-bg);color:var(--ok);}
+  .vitem{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .vitem:last-child{border-bottom:none;}
+  .vemail{font-weight:600;font-size:.9rem;}
+  .vdate{color:var(--muted);font-size:.78rem;margin-top:2px;}
+  .vaksi{display:flex;gap:8px;flex-shrink:0;}
 
   .overlay{position:fixed;inset:0;background:rgba(16,27,51,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:50;}
   .modal{background:#fff;border-radius:4px;max-width:640px;width:100%;padding:28px;}
@@ -136,6 +141,15 @@
   </div>
 </div>
 
+<div id="waitingScreen" class="loginwrap hidden">
+  <div class="logincard">
+    <div class="mark">PD</div>
+    <h1>Menunggu Verifikasi</h1>
+    <p class="sub">Akun sekolah Anda sudah terdaftar, tetapi belum diverifikasi oleh admin utama. Setelah diverifikasi, Anda bisa langsung masuk dan menggunakan aplikasi.</p>
+    <button class="btn gold" id="waitingLogoutBtn" style="width:100%">Keluar</button>
+  </div>
+</div>
+
 <div id="appScreen" class="hidden">
   <div class="shell">
     <div class="sidebar">
@@ -145,6 +159,7 @@
       <div class="navitem" data-page="kepsek">Input Data Kepala Sekolah</div>
       <div class="navitem" data-page="pegawai">Data Guru & Pegawai</div>
       <div class="navitem" data-page="dinas">Perjalanan Dinas & Cetak</div>
+      <div class="navitem hidden" id="navVerifikasi" data-page="verifikasi">Verifikasi Akun Sekolah</div>
       <div class="logout" id="logoutBtn">Keluar</div>
     </div>
     <div class="main">
@@ -264,6 +279,18 @@
         </div>
       </div>
 
+      <div class="page hidden" id="page-verifikasi">
+        <div class="pagehead"><h2>Verifikasi Akun Sekolah</h2><p class="sub">Setujui pendaftaran akun sekolah baru agar mereka bisa masuk dan menggunakan aplikasi.</p></div>
+        <div class="panel">
+          <h2 style="font-size:1.05rem;margin-bottom:14px;">Menunggu Verifikasi</h2>
+          <div id="listVerifikasiPending"></div>
+        </div>
+        <div class="panel" style="margin-top:20px;">
+          <h2 style="font-size:1.05rem;margin-bottom:14px;">Akun Sekolah Terverifikasi</h2>
+          <div id="listVerifikasiVerified"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -370,7 +397,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, doc, setDoc, getDoc, collection, addDoc, query,
-  onSnapshot, orderBy, updateDoc, deleteDoc, serverTimestamp
+  onSnapshot, orderBy, updateDoc, deleteDoc, serverTimestamp, where, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -388,7 +415,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const loginScreen = document.getElementById('loginScreen');
+const waitingScreen = document.getElementById('waitingScreen');
 const appScreen = document.getElementById('appScreen');
+const navVerifikasi = document.getElementById('navVerifikasi');
+document.getElementById('waitingLogoutBtn').onclick = () => signOut(auth);
 const loginEmail = document.getElementById('loginEmail');
 const loginPassword = document.getElementById('loginPassword');
 const loginBtn = document.getElementById('loginBtn');
@@ -422,9 +452,32 @@ loginBtn.onclick = async () => {
   try{ await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value); }
   catch(e){ showMsg(loginMsg, pesanError(e.code), 'err'); }
 };
+// Akun pertama yang berhasil mendaftar otomatis dijadikan "admin utama" dan langsung
+// terverifikasi. Akun berikutnya berstatus "pending" dan harus diverifikasi oleh admin
+// utama (lewat menu "Verifikasi Akun Sekolah") sebelum bisa masuk ke aplikasi.
+async function daftarkanProfilPengguna(user){
+  const adminRef = doc(db, 'settings', 'adminUtama');
+  let jadiAdminUtama = false;
+  await runTransaction(db, async (trx) => {
+    const adminSnap = await trx.get(adminRef);
+    if(!adminSnap.exists()){
+      trx.set(adminRef, { uid: user.uid, email: user.email, createdAt: serverTimestamp() });
+      jadiAdminUtama = true;
+    }
+  });
+  await setDoc(doc(db, 'users', user.uid), {
+    email: user.email,
+    role: jadiAdminUtama ? 'admin_utama' : 'sekolah',
+    status: jadiAdminUtama ? 'verified' : 'pending',
+    createdAt: serverTimestamp()
+  });
+}
 registerBtn.onclick = async () => {
   loginMsg.innerHTML = '';
-  try{ await createUserWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value); }
+  try{
+    const cred = await createUserWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+    await daftarkanProfilPengguna(cred.user);
+  }
   catch(e){ showMsg(loginMsg, pesanError(e.code), 'err'); }
 };
 document.getElementById('logoutBtn').onclick = () => signOut(auth);
@@ -440,21 +493,97 @@ document.querySelectorAll('.navitem').forEach(item => {
 
 let listeners = [];
 let schoolId = null;
+let profilPengguna = null;
 function clearListeners(){ listeners.forEach(u => u()); listeners = []; }
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   clearListeners();
   if(user){
     schoolId = user.uid;
+    let profil = null;
+    try{
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      profil = snap.exists() ? snap.data() : null;
+      // Akun lama (terdaftar sebelum fitur verifikasi ini ada) belum punya dokumen
+      // profil. Buatkan otomatis dengan status pending, supaya tetap wajib
+      // disetujui admin utama seperti akun baru, bukan langsung dianggap terverifikasi.
+      if(!profil){
+        profil = { email: user.email, role: 'sekolah', status: 'pending', createdAt: serverTimestamp() };
+        await setDoc(doc(db, 'users', user.uid), profil);
+      }
+    }catch(e){
+      // Gagal membaca/membuat profil (mis. aturan Firestore belum diperbarui) —
+      // demi keamanan, jangan tampilkan menu apa pun.
+      profil = { role: 'sekolah', status: 'pending' };
+    }
+    profilPengguna = profil;
+
+    if(profil.status === 'pending'){
+      loginScreen.classList.add('hidden');
+      appScreen.classList.add('hidden');
+      waitingScreen.classList.remove('hidden');
+      return;
+    }
+
+    waitingScreen.classList.add('hidden');
     loginScreen.classList.add('hidden');
     appScreen.classList.remove('hidden');
+    navVerifikasi.classList.toggle('hidden', profil.role !== 'admin_utama');
+    if(profil.role === 'admin_utama') muatDaftarVerifikasi();
+
     muatSekolah(); muatKepsek(); muatPegawai(); muatDinas();
   }else{
     schoolId = null;
+    profilPengguna = null;
     appScreen.classList.add('hidden');
+    waitingScreen.classList.add('hidden');
     loginScreen.classList.remove('hidden');
     loginEmail.value=''; loginPassword.value='';
   }
 });
+
+// ---- Verifikasi akun sekolah (khusus admin utama) ----
+function muatDaftarVerifikasi(){
+  const qUsers = query(collection(db, 'users'), where('role', '==', 'sekolah'));
+  const unsub = onSnapshot(qUsers, (snap) => {
+    const pending = [], verified = [];
+    snap.forEach(d => {
+      const data = { id: d.id, ...d.data() };
+      (data.status === 'pending' ? pending : verified).push(data);
+    });
+    renderDaftarVerifikasi(pending, verified);
+  });
+  listeners.push(unsub);
+}
+function fmtTglVerif(ts){
+  if(!ts || !ts.toDate) return '-';
+  const d = ts.toDate();
+  return d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+}
+function renderDaftarVerifikasi(pending, verified){
+  const elPending = document.getElementById('listVerifikasiPending');
+  const elVerified = document.getElementById('listVerifikasiVerified');
+  elPending.innerHTML = pending.length ? pending.map(u => `
+    <div class="vitem">
+      <div><div class="vemail">${u.email}</div><div class="vdate">Mendaftar: ${fmtTglVerif(u.createdAt)}</div></div>
+      <div class="vaksi">
+        <button class="btn small gold" data-verif="${u.id}">Verifikasi</button>
+        <button class="btn small ghost" data-tolak="${u.id}">Tolak</button>
+      </div>
+    </div>`).join('') : '<div class="empty">Tidak ada akun sekolah yang menunggu verifikasi.</div>';
+  elVerified.innerHTML = verified.length ? verified.map(u => `
+    <div class="vitem"><div class="vemail">${u.email}</div><span class="badge selesai">Terverifikasi</span></div>`).join('')
+    : '<div class="empty">Belum ada akun sekolah yang terverifikasi.</div>';
+  elPending.querySelectorAll('[data-verif]').forEach(btn => {
+    btn.onclick = () => updateDoc(doc(db, 'users', btn.dataset.verif), { status: 'verified' });
+  });
+  elPending.querySelectorAll('[data-tolak]').forEach(btn => {
+    btn.onclick = () => {
+      if(confirm('Tolak dan hapus pendaftaran akun ini dari daftar? Akun login-nya sendiri tidak terhapus.')){
+        deleteDoc(doc(db, 'users', btn.dataset.tolak));
+      }
+    };
+  });
+}
 
 const formSekolah = document.getElementById('formSekolah');
 const msgSekolah = document.getElementById('msgSekolah');
